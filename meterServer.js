@@ -227,13 +227,41 @@ function setup_wss() {
 	});
 }
 //定时器操作函数
-// 读取上次操作时间，读取电能量，随机取电压/电流，计算这次的电量值，更新库
+// 读取上次操作时间，读取电能量，随机取电压/电流，计算这次的电量值，更新库中的电压/电流/电能量值
 //
 function schedule_tick()
 {
-		
-			
-		
+	var redisClient = setup_redis();
+	redisClient.select('0', function(err,reply){
+		if(err)
+			return;
+		else{
+			//电压
+			redisClient.srandmember('voltage',1,function(erro,vol_reply){
+				if(erro){
+					redisClient.quit();
+					return;
+				}
+				print(vol_reply);
+				
+				//电流
+				redisClient.srandmember('current',1,function(error,cur_reply){
+					if(error){
+						redisClient.quit();
+						return;
+					}
+					print(cur_reply);
+					var energy_cal=cur_reply*vol_reply/(1000*60);
+					print(energy_cal.toFixed(2) + Date());
+					
+					//读取电能量
+					
+					//设置新的值
+					
+				});
+			});
+		}
+	});
 }
 
 //启动scheduler
@@ -242,9 +270,7 @@ function start_scheduler()
 	print('start scheduler');
   var rule=new schedule.RecurrenceRule();
   rule.second = 5;
-  var l=schedule.scheduleJob(rule,function(){
-    print('hello,world.' + Date());
-  });
+  var l=schedule.scheduleJob(rule,schedule_tick);
 
 }
 
