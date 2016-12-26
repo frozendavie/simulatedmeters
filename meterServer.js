@@ -6,6 +6,10 @@ var redisClient = null;
 var redisServerIP = '127.0.0.1';
 var redisServerPort= '9000';
 
+//schedule
+var schedule = require('node-schedule');
+
+//time formatter
 function formatDate() {
   var date=new Date();
   var format = "yyyy-MM-dd HH:mm:ss ";
@@ -22,6 +26,7 @@ function formatDate() {
   });
 };
 
+//setup redis
 function setup_redis() {
   var client = redis.createClient(redisServerPort, redisServerIP);
 
@@ -37,7 +42,7 @@ function setup_redis() {
   return client;
 };
 
-
+//check code cs
 function check(message){
 	var msg=new Uint8Array(message);
 	if(msg[0]==0x68 && msg[7]==0x68){
@@ -49,12 +54,16 @@ function check(message){
 	}
 	return 1;
 }
+
+// 10 -> 0x0A;  11 -> 0x0B
 function byte_2_hex(num){
 	if(num<16)
 		return '0'+num.toString(16);
 	else
 		return num.toString(16);
 }
+
+//分析帧数据类型
 function analyze(message)
 {
 	var msg=message;
@@ -217,5 +226,29 @@ function setup_wss() {
 			})
 	});
 }
+//定时器操作函数
+// 读取上次操作时间，读取电能量，随机取电压/电流，计算这次的电量值，更新库
+//
+function schedule_tick()
+{
+		
+			
+		
+}
 
+//启动scheduler
+function start_scheduler()
+{
+	print('start scheduler');
+  var rule=new schedule.RecurrenceRule();
+  rule.second = 5;
+  var l=schedule.scheduleJob(rule,function(){
+    print('hello,world.' + Date());
+  });
+
+}
+
+//启动模拟表监听服务器
 setup_wss();
+
+start_scheduler();
