@@ -3,7 +3,7 @@ var print=console.log;
 var redis= require('redis');
 
 //redis client operation: connect, auth, error, select, get, set, ,,,
-var client=redis.createClient('9000','172.19.74.146');
+var client=redis.createClient('9000','127.0.0.1');
 client.auth("ltR44-dFs8g_", function(error){
   if(error)
 		 print(error);
@@ -31,7 +31,7 @@ client.select('0',function(error){
 			print(error);
 		else{
 			var data = JSON.parse(reply);
-			data.value='123.45';
+			data.value=123.45;
 			client.hset('meters:address:000000000001','00010000',JSON.stringify(data),redis.print);//电表：表地址->000000000001 数据标识->00010000
 		}
 	});

@@ -149,12 +149,16 @@ function framing(md){
 	frame[11]=parseInt(md.di.substr(4,2),16)+0x33;
 	frame[10]=parseInt(md.di.substr(6,2),16)+0x33;
 	//数据区的处理
-	//if(md.format.indexOf('.')!=-1)
-	//{
-	//	if(md.format.charAt(0) == 'X'){
-	//		//...
-	//	}
-	//}
+	if(md.format.indexOf('.')!=-1)//有小数点
+	{
+		if(md.format.charAt(0) == 'X'){//第一个字母是X
+			if(md.format.match(/[X]/g).length == md.length*2){//长度是2倍的length
+				var point_pos=md.format.indexOf('.');
+				var rear_length=md.format.length-point_pos+1;
+				var value_1=md.didata.toFixed(rear_length);
+			}
+		}
+	}
 	var formattedValue='78653433';
 	for( var i=0;i<md.length;i++){
 		frame[14+i]=parseInt(formattedValue.substr(i*2,2),16);
@@ -226,7 +230,7 @@ function setup_wss() {
 			})
 	});
 }
-//定时器操作函数
+//定时器操作函数,遍历所有激活的电表
 // 读取上次操作时间，读取电能量，随机取电压/电流，计算这次的电量值，更新库中的电压/电流/电能量值
 //
 function schedule_tick()
@@ -242,7 +246,7 @@ function schedule_tick()
 					redisClient.quit();
 					return;
 				}
-				print(vol_reply);
+				print('voltage: '+vol_reply);
 				
 				//电流
 				redisClient.srandmember('current',1,function(error,cur_reply){
@@ -250,13 +254,30 @@ function schedule_tick()
 						redisClient.quit();
 						return;
 					}
-					print(cur_reply);
+					print('current: '+cur_reply);
 					var energy_cal=cur_reply*vol_reply/(1000*60);
-					print(energy_cal.toFixed(2) + Date());
+					print(energy_cal.toFixed(2) +'  ' +  Date());
 					
-					//读取电能量
-					
+					//读取电能量  
 					//设置新的值
+					redisClient.smembers('active_meters',function(error,addresses_reply){
+				  	print('meter count: ' + addresses_reply.length);
+
+						addresses_reply.forEach(function(address,i){
+							print('address '+ i + ' : '+address);
+							var address_key = 'meters:address:' + address;						
+							redisClient.hget(address_key,'00010000',function(error,reply){
+								if(error)
+      						print(error);
+    						else{
+      						var data = JSON.parse(reply);
+									data.value=Number(data.value)+Number(energy_cal);
+									print(data.value);
+									redisClient.hset('meters:address:000000000001','00010000',JSON.stringify(data),redis.print);
+								}		
+							});
+						});
+					});	
 					
 				});
 			});
@@ -267,7 +288,7 @@ function schedule_tick()
 //启动scheduler
 function start_scheduler()
 {
-	print('start scheduler');
+	print('start scheduler at ' + Date());
   var rule=new schedule.RecurrenceRule();
   rule.second = 5;
   var l=schedule.scheduleJob(rule,schedule_tick);
