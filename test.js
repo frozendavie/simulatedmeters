@@ -11,3 +11,7 @@ print('12 :' + num_a.toFixed(2));
 var num_b=12.3456;
 print(num_b.toString().match(/[0-9]/g).join(''));
 var reg_b=new RegExp();
+
+print(parseInt('12',16));
+print(parseInt('2',16));
+
