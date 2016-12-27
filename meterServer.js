@@ -154,7 +154,7 @@ function framing(md){
 		if(md.format.charAt(0) == 'X'){//第一个字母是X
 			if(md.format.match(/[X]/g).length == md.length*2){//长度是2倍的length
 				var point_pos=md.format.indexOf('.');
-				var rear_length=md.format.length-point_pos+1;
+				var rear_length=md.format.length-point_pos-1;
 				var value_1=md.didata.toFixed(rear_length);
 			}
 		}
